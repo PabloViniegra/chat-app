@@ -1,29 +1,29 @@
 {
-  "name": "chat-app",
-  "version": "1.0.0",
-  "description": "Modern real-time chat application built with Bun and TypeScript",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "dev": "bun run --watch src/server/index.ts",
-    "start": "bun run src/server/index.ts",
-    "build": "bun build src/client/main.ts --outdir ./dist --minify",
-    "test": "bun test",
-    "db:reset": "rm -f data/chat.db && bun run src/server/index.ts",
-    "lint": "bunx @biomejs/biome check ./src",
-    "format": "bunx @biomejs/biome format --write ./src"
-  },
-  "dependencies": {
-    "nanoid": "5.0.7",
-    "zod": "3.23.8"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.3.8",
-    "@types/bun": "latest",
-    "typescript": "5.5.4"
-  },
-  "engines": {
-    "bun": ">=1.1.0"
-  }
+	"name": "chat-app",
+	"version": "1.0.0",
+	"description": "Modern real-time chat application built with Bun and TypeScript",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "bun run --watch src/server/index.ts",
+		"start": "bun run src/server/index.ts",
+		"build": "bun build src/client/main.ts --outdir ./dist --minify",
+		"tests": "bun test",
+		"db:reset": "rm -f data/chat.db && bun run src/server/index.ts",
+		"lint": "bunx @biomejs/biome check ./src",
+		"format": "bunx @biomejs/biome format --write ./src"
+	},
+	"dependencies": {
+		"nanoid": "5.0.7",
+		"zod": "3.23.8"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.8",
+		"@types/bun": "latest",
+		"typescript": "5.5.4"
+	},
+	"engines": {
+		"bun": ">=1.1.0"
+	}
 }
