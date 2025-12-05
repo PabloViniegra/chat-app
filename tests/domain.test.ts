@@ -68,6 +68,133 @@ describe("Domain Layer - Extended Tests", () => {
 				expect(formatted).toContain("Line 1");
 				expect(formatted).toContain("Line 2");
 			});
+
+			test("converts emoji shortcodes to Unicode", () => {
+				const content = "Hello :smile: and :heart:";
+				const formatted = MessageFormatter.formatContent(content);
+
+				expect(formatted).toContain("😄");
+				expect(formatted).toContain("❤️");
+				expect(formatted).not.toContain(":smile:");
+				expect(formatted).not.toContain(":heart:");
+			});
+
+			test("preserves invalid emoji shortcodes", () => {
+				const content = "Hello :invalid_emoji: world";
+				const formatted = MessageFormatter.formatContent(content);
+
+				expect(formatted).toContain(":invalid_emoji:");
+			});
+
+			test("handles multiple emojis in one message", () => {
+				const content = ":fire: :rocket: :tada:";
+				const formatted = MessageFormatter.formatContent(content);
+
+				expect(formatted).toContain("🔥");
+				expect(formatted).toContain("🚀");
+				expect(formatted).toContain("🎉");
+			});
+
+			test("converts emojis at start and end of message", () => {
+				const content = ":wave: Hello world :thumbsup:";
+				const formatted = MessageFormatter.formatContent(content);
+
+				expect(formatted).toContain("👋");
+				expect(formatted).toContain("👍");
+			});
+
+			test("handles emoji with other formatting", () => {
+				const content = ":fire: Check https://example.com @user :rocket:";
+				const formatted = MessageFormatter.formatContent(content);
+
+				expect(formatted).toContain("🔥");
+				expect(formatted).toContain("🚀");
+				expect(formatted).toContain('<a href="https://example.com"');
+				expect(formatted).toContain('<span class="mention">@user</span>');
+			});
+
+			test("handles consecutive emojis", () => {
+				const content = ":smile::heart::fire:";
+				const formatted = MessageFormatter.formatContent(content);
+
+				expect(formatted).toContain("😄");
+				expect(formatted).toContain("❤️");
+				expect(formatted).toContain("🔥");
+			});
+
+			test("handles emoji shortcodes with hyphens and underscores", () => {
+				const content = ":thumbsup: :first_place_medal: :heart_eyes:";
+				const formatted = MessageFormatter.formatContent(content);
+
+				expect(formatted).toContain("👍");
+				expect(formatted).toContain("🥇");
+				expect(formatted).toContain("😍");
+			});
+
+			test("does not convert partial emoji patterns", () => {
+				const content = "This :is not: an emoji";
+				const formatted = MessageFormatter.formatContent(content);
+
+				// Should preserve because "is not" has a space
+				expect(formatted).toContain(":is not:");
+			});
+
+			test("preserves emoji in XSS attempts", () => {
+				const content = ':smile:<script>alert("xss")</script>:heart:';
+				const formatted = MessageFormatter.formatContent(content);
+
+				expect(formatted).toContain("😄");
+				expect(formatted).toContain("❤️");
+				expect(formatted).toContain("&lt;script&gt;");
+				expect(formatted).not.toContain("<script>");
+			});
+		});
+
+		describe("convertEmojis", () => {
+			test("converts valid emoji shortcodes", () => {
+				const result = MessageFormatter.convertEmojis(":smile: :heart:");
+				expect(result).toBe("😄 ❤️");
+			});
+
+			test("leaves invalid shortcodes unchanged", () => {
+				const result = MessageFormatter.convertEmojis(":invalid:");
+				expect(result).toBe(":invalid:");
+			});
+
+			test("handles empty string", () => {
+				const result = MessageFormatter.convertEmojis("");
+				expect(result).toBe("");
+			});
+
+			test("handles text without emojis", () => {
+				const result = MessageFormatter.convertEmojis("Hello world");
+				expect(result).toBe("Hello world");
+			});
+
+			test("handles mixed valid and invalid emojis", () => {
+				const result = MessageFormatter.convertEmojis(
+					":smile: :invalid: :heart:",
+				);
+				expect(result).toContain("😄");
+				expect(result).toContain("❤️");
+				expect(result).toContain(":invalid:");
+			});
+
+			test("converts all standard emoji categories", () => {
+				const tests = [
+					{ shortcode: ":dog:", expected: "🐶" },
+					{ shortcode: ":pizza:", expected: "🍕" },
+					{ shortcode: ":soccer:", expected: "⚽" },
+					{ shortcode: ":car:", expected: "🚗" },
+					{ shortcode: ":fire:", expected: "🔥" },
+					{ shortcode: ":thumbsup:", expected: "👍" },
+				];
+
+				for (const { shortcode, expected } of tests) {
+					const result = MessageFormatter.convertEmojis(shortcode);
+					expect(result).toBe(expected);
+				}
+			});
 		});
 
 		describe("extractMentions", () => {
