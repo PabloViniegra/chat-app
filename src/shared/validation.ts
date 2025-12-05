@@ -33,6 +33,9 @@ export const MessageContentSchema = z
 		`Message cannot exceed ${CONSTANTS.MAX_MESSAGE_LENGTH} characters`,
 	)
 	.transform((str) => str.trim());
+// Note: Emoji Unicode characters are fully supported. The length limit counts UTF-16 code units.
+// Simple emojis count as 2 characters (😄, ❤️), while complex emojis (flags, skin tones,
+// ZWJ sequences like 👨‍👩‍👧‍👦) can count as 4-11 characters towards the 2000 character limit.
 
 export const RoomIdSchema = z.string().min(1).max(50);
 

@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { getEmoji } from "../shared/emojiMap";
 import type {
 	Message,
 	MessageId,
@@ -180,9 +181,43 @@ export class RoomFactory {
 export class MessageFormatter {
 	private static readonly URL_REGEX = /(https?:\/\/[^\s]+)/g;
 	private static readonly MENTION_REGEX = /@(\w+)/g;
+	private static readonly EMOJI_REGEX = /:([a-z0-9_]+):/g;
 
+	/**
+	 * Converts emoji shortcodes to Unicode characters
+	 * @param content - Text content with potential emoji shortcodes (e.g., ":smile:")
+	 * @returns Content with emoji shortcodes replaced by Unicode emojis (e.g., "😄")
+	 * @example
+	 * convertEmojis("Hello :wave:") // Returns "Hello 👋"
+	 * convertEmojis(":invalid:") // Returns ":invalid:" (preserved if not found)
+	 */
+	static convertEmojis(content: string): string {
+		return content.replace(
+			MessageFormatter.EMOJI_REGEX,
+			(_match, shortcode: string) => {
+				const emoji = getEmoji(shortcode);
+				return emoji ?? `:${shortcode}:`;
+			},
+		);
+	}
+
+	/**
+	 * Formats message content with XSS protection, URL linking, mention highlighting, and emoji conversion
+	 * IMPORTANT SECURITY NOTE: Processing order is critical for XSS prevention:
+	 * 1. Convert emoji shortcodes to Unicode (e.g., :smile: → 😄)
+	 * 2. Escape HTML entities (e.g., <script> → &lt;script&gt;)
+	 * 3. Format URLs and mentions as safe HTML
+	 * This ensures emoji Unicode characters are preserved while malicious HTML is escaped.
+	 *
+	 * @param content - Raw message content from user input
+	 * @returns Formatted HTML-safe content with emojis, clickable URLs, and highlighted mentions
+	 */
 	static formatContent(content: string): string {
-		return content
+		// Step 1: Convert emoji shortcodes to Unicode before HTML escaping
+		const withEmojis = MessageFormatter.convertEmojis(content);
+
+		// Step 2-4: Escape HTML, then format URLs and mentions
+		return withEmojis
 			.replace(/</g, "&lt;")
 			.replace(/>/g, "&gt;")
 			.replace(
