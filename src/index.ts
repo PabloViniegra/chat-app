@@ -1,5 +1,3 @@
-// Shared exports
-
 // Application exports
 export * from "./application/useCases";
 // Domain exports

@@ -39,3 +39,5 @@ coverage/
 #Claude
 CLAUDE.md
 AGENTS.md
+.claude/*
+.mcp.json
